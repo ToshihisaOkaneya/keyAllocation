@@ -60,6 +60,10 @@ vk1Dsc07B & f::
 
 ;無変換+m => 下に行を挿入
 vk1Dsc07B & m::
+	if WinActive("ahk_class SWT_Window0") {
+		Send {Esc}
+		Send {Esc}
+	}
 	Send {End}
 	Send {Enter}
 	return
@@ -119,17 +123,58 @@ AppsKey & vkDBsc01B::Send {PgUp}
 ;AppsKey+] => PgDn
 AppsKey & vkDDsc02B::Send {PgDn}
 
-
-;メモ帳及びexcelではF1キー無効化
+;メモ帳,excel,chromeではF1キー無効化
+;F1=>半角/全角
 F1::
 	if WinActive("ahk_class Notepad")
-	|| WinActive("ahk_class XLMAIN") {
+	|| WinActive("ahk_class XLMAIN")
+	|| WinActive("ahk_class Chrome_WidgetWin_1") {
 		return
 	}
 	Send {F1}
 	return
 
-;-----------------------------------------------------------------------------
+;Excelでalt+p→ctrl+PageUp
+!p::
+	if WinActive("ahk_class XLMAIN") {
+		Send ^{pgup}
+	}
+	return
+;Excelでalt+:→ctrl+PageDown
+!vkBBsc027::
+	if WinActive("ahk_class XLMAIN") {
+		Send ^{pgdn}
+	}
+	return
+;Excel VBEでctrl+k→自動構文チェックon/off切り替え
+^k::
+	if WinActive("ahk_class wndclass_desked_gsk") {
+		Send !t
+		Send +o
+		Send +k
+		Send {Enter}
+	} else {
+		Send ^k
+	}
+	return
+
+;メモ帳で ctrl+w→alt+F4
+;桜エディタで ctrl+w→ctrl+F4
+^w::
+	if WinActive("ahk_class Notepad") {
+		Send !{F4}
+		return
+	} else if WinActive("ahk_class TextEditorWindowW166") {
+		Send ^{F4}
+		return
+	}
+	Send ^w
+	return
+
+
+;変換+無変換=>スクリプトリロード
+vk1Dsc07B & vk1Csc079::Reload
+
 ;コマンドプロンプト用
 ;ctrl+vで張り付け
 #If WinActive("ahk_class ConsoleWindowClass")
@@ -155,7 +200,8 @@ F1::
 	return
 #IfWinActive
 
-;文字列張り付け
+
+;文字列張り付け用関数
 PasteString(String){
 	Backup := ClipboardAll
 	Clipboard := String
