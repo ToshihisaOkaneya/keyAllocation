@@ -1,1 +1,1 @@
-# keyAllocation
+AutoHotKeyで使うソース
