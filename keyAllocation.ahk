@@ -158,8 +158,8 @@ F1::
 	}
 	return
 
-;メモ帳で ctrl+w→alt+F4
-;桜エディタで ctrl+w→ctrl+F4
+;メモ帳で ctrl+w=>alt+F4
+;桜エディタで ctrl+w=>ctrl+F4
 ^w::
 	if WinActive("ahk_class Notepad") {
 		Send !{F4}
@@ -170,7 +170,19 @@ F1::
 	}
 	Send ^w
 	return
-
+	
+;eclipseでAlt+h=>Alt+左
+!h::
+	if WinActive("ahk_class SWT_Window0") {
+		Send !{Left}
+	}
+	return
+;eclipseでAlt+l=>Alt+右
+!l::
+	if WinActive("ahk_class SWT_Window0") {
+		Send !{Right}
+	}
+	return
 
 ;変換+無変換=>スクリプトリロード
 vk1Dsc07B & vk1Csc079::Reload
