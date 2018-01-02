@@ -14,7 +14,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 ;無変換+(h or s) => 左
 vk1Dsc07B & h::
-vk1Dsc07B & s::
+;vk1Dsc07B & s::
 	if GetKeyState("ctrl", "P"){
 		Send +{Left}
 	}else if GetKeyState("shift", "P"){
@@ -25,29 +25,39 @@ vk1Dsc07B & s::
 	return
 ;無変換+(j or d) => 下
 vk1Dsc07B & j::
-vk1Dsc07B & d::
+;vk1Dsc07B & d::
 	if GetKeyState("ctrl", "P"){
 		Send +{Down}
 	}else if GetKeyState("shift", "P"){
 		Send ^{Down}
 	}else{
-		Send {Down}
+		if WinActive("ahk_class Framework::CFrame") {
+			; One Noteで上下キーSendが効かないので代用
+			Send ^{Down}
+		} else {
+			Send {Down}
+		}
 	}
 	return
 ;無変換+(k or e) => 上
 vk1Dsc07B & k::
-vk1Dsc07B & e::
+;vk1Dsc07B & e::
 	If GetKeyState("ctrl", "P"){
 		Send +{Up}
 	}else if GetKeyState("shift", "P"){
 		Send ^{Up}
 	}else{
-		Send {Up}
+		if WinActive("ahk_class Framework::CFrame") {
+			; One Noteで上下キーSendが効かないので代用
+			Send ^{Up}
+		} else {
+			Send {Up}
+		}
 	}
 	return
 ;無変換+(l or f) => 右
 vk1Dsc07B & l::
-vk1Dsc07B & f::
+;vk1Dsc07B & f::
 	If GetKeyState("ctrl", "P"){
 		Send +{Right}
 	}else if GetKeyState("shift", "P"){
@@ -97,6 +107,8 @@ vk1Dsc07B & o::
 vk1Dsc07B & p::
 	if GetKeyState("ctrl", "P"){
 		Send +{pgup}
+	}else if GetKeyState("alt", "P"){
+		Send !{pgup}
 	}else{
 		Send {pgup}
 	}
@@ -106,6 +118,8 @@ vk1Dsc07B & p::
 vk1Dsc07B & vkBBsc027::
 	if GetKeyState("ctrl", "P"){
 		Send +{pgdn}
+	}else if GetKeyState("alt", "P"){
+		Send !{pgdn}
 	}else{
 		Send {pgdn}
 	}
@@ -123,12 +137,13 @@ AppsKey & vkDBsc01B::Send {PgUp}
 ;AppsKey+] => PgDn
 AppsKey & vkDDsc02B::Send {PgDn}
 
-;メモ帳,excel,chromeではF1キー無効化
+;メモ帳,excel,chrome,sakuraエディタではF1キー無効化
 ;F1=>半角/全角
 F1::
 	if WinActive("ahk_class Notepad")
 	|| WinActive("ahk_class XLMAIN")
-	|| WinActive("ahk_class Chrome_WidgetWin_1") {
+	|| WinActive("ahk_class Chrome_WidgetWin_1")
+	|| WinActive("ahk_class TextEditorWindowW166") {
 		return
 	}
 	Send {F1}
@@ -167,6 +182,9 @@ F1::
 	} else if WinActive("ahk_class TextEditorWindowW166") {
 		Send ^{F4}
 		return
+	} else if WinActive("ahk_class TextEditorWindowW142") {
+		Send ^{F4}
+		return
 	}
 	Send ^w
 	return
@@ -184,19 +202,21 @@ F1::
 	}
 	return
 
-;変換+無変換=>スクリプトリロード
-vk1Dsc07B & vk1Csc079::Reload
+;右Win→Alt
+vk5Csc15C::vkA4sc038
 
-;コマンドプロンプト用
-;ctrl+vで張り付け
-#If WinActive("ahk_class ConsoleWindowClass")
-^v::
-	Send !{Space}ep	;貼り付け
+;chrome上でctrl+("+" or "-")による拡大無効化
+#If WinActive("ahk_class Chrome_WidgetWin_1")
+^vkBBsc027::
+	return
+^vkBDsc00C::
 	return
 #IfWinActive
 
-;cygwinバージョン
-;ctrl+vで張り付け
+;変換+無変換=>スクリプトリロード
+vk1Dsc07B & vk1Csc079::Reload
+
+;ctrl+vで張り付け(cygwin用)
 ;パスをコピペする時に \ → / に変換して貼り付け
 #If WinActive("ahk_class mintty")
 ^v::
@@ -212,7 +232,43 @@ vk1Dsc07B & vk1Csc079::Reload
 	return
 #IfWinActive
 
+;ctrl+vで貼り付け(bash on Ubuntu on Windows)
+#If WinActive("ahk_exe bash.exe")
+^v::
+	SendInput {Raw}%clipboard%
+	return
+#IfWinActive
 
+;ctrl+vで張り付け(コマンドプロンプト用)
+#If WinActive("ahk_exe cmd.exe")
+^v::
+	Send !{Space}ep	;貼り付け
+	return
+#IfWinActive
+
+;;;;;;bootcamp対応;;;;;;
+
+;無変換+e→英語
+vk1Dsc07B & e::
+	Send {sc03a}
+	return
+
+;変換+l→日本語
+vk1Csc079 & l::
+	Send {sc070}
+	return
+
+;無変換+d→delete
+vk1Dsc07B & d::
+	Send {Delete}
+	return
+
+;alt+F2→alt+F4
+!F2::
+	Send !{F4}
+	return
+
+;;;;;;util関数;;;;;;
 ;文字列張り付け用関数
 PasteString(String){
 	Backup := ClipboardAll
@@ -225,4 +281,3 @@ PasteString(String){
 	Sleep,70
 	Clipboard := Backup
 }
-
